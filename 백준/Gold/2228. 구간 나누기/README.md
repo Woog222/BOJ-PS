@@ -2,31 +2,14 @@
 
 [문제 링크](https://www.acmicpc.net/problem/2228) 
 
-### 성능 요약
+ 
+ dp initial value problem :
 
-메모리: 2040 KB, 시간: 0 ms
+initial value :  INF (unconditionally less than any value), we are lookin for max answer, so its reasonable
 
-### 분류
+after we passed that dp element, we need to modify the value to identify we already checked this status, for memoization. its somewhat tricky in this problem. usually, with initial value -1, we set it to integer greater or equal than zero. but it's not possible.
 
-다이나믹 프로그래밍(dp)
-
-### 문제 설명
-
-<p>N(1 ≤ N ≤ 100)개의 수로 이루어진 1차원 배열이 있다. 이 배열에서 M(1 ≤ M ≤ ⌈(N/2)⌉)개의 구간을 선택해서, 구간에 속한 수들의 총 합이 최대가 되도록 하려 한다. 단, 다음의 조건들이 만족되어야 한다.</p>
-
-<ol>
-	<li>각 구간은 한 개 이상의 연속된 수들로 이루어진다.</li>
-	<li>서로 다른 두 구간끼리 겹쳐있거나 인접해 있어서는 안 된다.</li>
-	<li>정확히 M개의 구간이 있어야 한다. M개 미만이어서는 안 된다.</li>
-</ol>
-
-<p>N개의 수들이 주어졌을 때, 답을 구하는 프로그램을 작성하시오.</p>
-
-### 입력 
-
- <p>첫째 줄에 두 정수 N, M이 주어진다. 다음 N개의 줄에는 배열을 이루는 수들이 차례로 주어진다. 배열을 이루는 수들은 -32768 이상 32767 이하의 정수이다.</p>
-
-### 출력 
-
- <p>첫째 줄에 답을 출력한다.</p>
+two way for circumventing this:
+1) use boolean check arr, c[][], for checking we have seted the value in dp[][]. it needs more memory space, but very simple and intuitive, concise, not complicated.
+2) set another value, that is differentiated with the initial value and valid value. in this case, -4000000. it is differentiated with the initial value INF, and due to the condition in problem, actual caculated value cant reach -4000000. but it needs more care, strict precaculation for preventing fatal logical error. may not be recommended in such a complicated case. 
 
