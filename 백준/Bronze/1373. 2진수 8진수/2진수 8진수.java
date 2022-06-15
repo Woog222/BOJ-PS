@@ -12,7 +12,7 @@ public class Main
         int len = p.length();
 
 
-        StringBuilder ans = new StringBuilder();
+        StringBuilder ans = new StringBuilder(333339);
         for (int i=len-3; i>=0; i-= 3) {
             int val = (int)(p.charAt(i) - '0') *4;
             val += (int)(p.charAt(i+1) - '0') *2;
@@ -36,21 +36,5 @@ public class Main
         bw.flush();
         bw.close();
 
-    }
-    private static int gcd(int a, int b)
-    {
-        if (a<b) {
-            int temp = b;
-            b =a;
-            a = temp;
-        }
-        // a>b
-        while (b>0) {
-            int r = a%b;
-            a = b;
-            b = r;
-        }
-
-        return a;
     }
 }
