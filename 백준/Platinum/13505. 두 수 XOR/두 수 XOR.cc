@@ -14,77 +14,97 @@
 #include <set>
 #include <iterator>
 #include <cstdlib>
-#include <ctime>
-#include <climits>
 using namespace std;
 typedef long long ll;
 typedef vector<int> vi;
 typedef vector<vi> vvi;
 typedef pair<int, int> pii;
-const int INF = 1987654321;
-const int ALPHABET = 2;
+const int INF = 987654321;
 
+inline int toNumber(char c) {
+    return c - '0';
+}
 
-struct TrieNode {
+struct Node {
+    bool valid;
+    Node* children[2];
 
-    TrieNode* child[ALPHABET];
-
-    TrieNode() {
-        memset(child, 0, sizeof(child));
+    Node() : valid(false) {
+        memset(children, 0, sizeof(children));
     }
-    ~TrieNode() {
-        for (int i = 0; i < ALPHABET; ++i)
-            delete child[i];
+
+    ~Node() {
+        for (int i = 0; i < 2; ++i)
+            delete children[i];
     }
-    // from 28
-    void insert(int num, int idx) 
+
+    void insert(const char* key)
     {
-        if (idx == -1) {
+        if (*key == 0) {
+            this->valid = true;
             return;
         }
 
-        int bit = num & (1 << idx);
-        bit = bit >> idx;
+        int child = toNumber(+*key);
+        if (children[child] == NULL)
+            children[child] = new Node();
 
-        if (child[bit] == NULL)
-            child[bit] = new TrieNode();
+      
 
-        child[bit]->insert(num, idx - 1);
+        children[child]->insert(key+1);
     }
-    // from 28
-    int  find(int num, int idx, int res) {
-        if (idx == -1)
-            return res;
 
-        int bit = num & (1 << idx);
-        bit = bit >> idx;
+    bool search(const char* key)
+    {
+        if (*key == 0)
+            return true;
+        int child = toNumber(+*key);
+        
+        if (children[child] == NULL)
+            return false;
 
-        if (child[1 - bit] != NULL)
-            return child[1-bit] -> find(num, idx - 1, res + (1 << idx));
-        else if (child[bit] != NULL)
-            return child[bit]->find(num, idx - 1, res);
-        // only when no element in trie
-        return -1;
+        return children[child]->search(key + 1);
+    }
+    // exp : key.size()-1로 시작, 마지막에 -1로 끝남
+    int cal(const char* key, int exp) {
+        if (*key == 0)
+            return 0;
+
+        int cur = toNumber(*key);
+        if (children[1 - cur] != NULL)
+            return (1 << exp) + children[1 - cur]->cal(key + 1, exp - 1);
+        else 
+            return children[cur]->cal(key + 1, exp - 1);
+        
     }
 };
 
+string int2bit(int n);
 int main()
 {
-    cin.tie(NULL); ios_base::sync_with_stdio(false);
-    cout.tie(NULL);
+    cin.tie(nullptr); ios_base::sync_with_stdio(false);
+    cout.tie(nullptr);
 
+    Node* trie = new Node();
     int n; cin >> n;
 
     int ans = 0;
-    TrieNode* trie = new TrieNode();
     for (int i = 0; i < n; ++i)
     {
         int num; cin >> num;
-
-        trie->insert(num, 29);
-        ans = max(ans, trie->find(num, 29, 0));
+        string s = int2bit(num);
+        trie -> insert(s.c_str());
+        ans = max(ans, trie-> cal(s.c_str(), s.size()-1) );
     }
 
-    delete trie;
-    cout << ans << endl;
+    cout << ans << '\n';
+}
+
+string int2bit(int n)
+{
+    vector<char> ret;
+    for (int i = 29; i >= 0; --i)
+        ret.push_back(!!(n & (1<<i)) + '0');
+
+    return string(ret.begin(), ret.end());
 }
