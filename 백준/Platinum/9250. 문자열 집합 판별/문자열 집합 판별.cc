@@ -14,149 +14,148 @@
 #include <set>
 #include <iterator>
 #include <cstdlib>
-#include <ctime>
-#include <climits>
-
-
 using namespace std;
 typedef long long ll;
 typedef vector<int> vi;
 typedef vector<vi> vvi;
 typedef pair<int, int> pii;
-const int INF = 1987654321;
-const int ALPHABET = 26;
+const int INF = 987654321;
 
+inline int toNumber(char c) {
+    return c - 'a';
+}
 
-int N;
-
-inline int toNumber(char c) { return c - 'a'; }
-struct TrieNode {
-
-    TrieNode* child[ALPHABET];
+struct Node {
     int terminal;
-    TrieNode* fail;
-    bool output;
+    Node* children[26];
+    
+    //aho corasick fail
+    Node* fail;
+    vector<int> res;
 
-    TrieNode() : terminal(-1), fail(NULL), output(false) {
-        memset(child, 0, sizeof(child));
-    }
-    ~TrieNode() {
-        for (int i = 0; i < ALPHABET; ++i)
-            delete child[i];
+    Node() : terminal( -1) {
+        memset(children, 0, sizeof(children));
     }
 
-    void insert(const char* key, int id) 
+    ~Node() {
+        for (int i = 0; i < 26; ++i)
+            delete children[i];
+    }
+
+    void insert(const char* key, int idx)
     {
         if (*key == 0) {
-            terminal = id;
+            this->terminal = idx;
             return;
         }
 
-        int next = toNumber(*key);
-        if (child[next] == NULL)
-            child[next] = new TrieNode();
+        int child = toNumber(+*key);
+        if (children[child] == NULL)
+            children[child] = new Node();
 
-        child[next]->insert(key + 1, id);
+        children[child]->insert(key+1, idx);
     }
 
-    TrieNode* find(const char* key) {
+    bool search(const char* key)
+    {
         if (*key == 0)
             return this;
+        int child = toNumber(+*key);
+        
+        if (children[child] == NULL)
+            return false;
 
-        int next = toNumber(*key);
-        if (child[next] == NULL)
-            return NULL;
-        return child[next]->find(key + 1);
+        return children[child]->search(key + 1);
     }
 };
 
-void make_fail(TrieNode* root);
-bool AhoCorasick(TrieNode* root, const string& h);
+
+void makeFail(Node* root);
+bool AhoCorasick(Node* root, const string& h);
 int main()
 {
-    cin.tie(NULL); ios_base::sync_with_stdio(false);
-    cin >> N;
+    cin.tie(nullptr); ios_base::sync_with_stdio(false);
+    cout.tie(nullptr);
 
-    TrieNode* trie = new TrieNode();
-    vector<string> words(N);
-    for (int i = 0; i < N; ++i) {
-        cin >> words[i];
-        trie->insert(words[i].c_str(), i);
-    }
-    make_fail(trie);
-
-
-    // queries
-    int q; cin >> q;
-    while (q--)
-    {
+    int n; cin >> n;
+    Node* trie = new Node();
+    for (int i = 0; i < n; ++i) {
         string s; cin >> s;
-        if (AhoCorasick(trie, s))
+        trie->insert(s.c_str(), i);
+    }
+    makeFail(trie);
+
+    cin >> n;
+    while (n--)
+    {
+        string h; cin >> h;
+        if (AhoCorasick(trie, h))
             cout << "YES\n";
         else
             cout << "NO\n";
     }
 
-    delete trie;
+    
 }
 
-void make_fail(TrieNode* root)
+bool AhoCorasick(Node* root, const string& h)
 {
-    root->fail = root;
+    int n = h.length();
 
-    queue<TrieNode*> q;
+    Node* matched = root;
+    for (int i = 0; i < n; ++i)
+    {
+        int temp = toNumber(h[i]);
+        while (matched != root && matched->children[temp] == NULL)
+            matched = matched->fail;
+
+        if (matched->children[temp] != NULL) {
+            matched = matched->children[temp];
+            if (matched->res.size() > 0)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+void makeFail(Node* root)
+{
+    queue<Node*> q;
+    root->fail = root;
     q.push(root);
 
     while (!q.empty())
     {
-        TrieNode* here = q.front(); q.pop();
-
-        for (int i = 0; i < ALPHABET; ++i) 
+        Node* cur = q.front(); q.pop();
+        
+        for (int i = 0; i < 26; ++i)
         {
-            if (here->child[i] == NULL) continue;
+            if (cur->children[i] == NULL)
+                continue;
 
-            TrieNode* child = here->child[i];
-            if (here == root) {
+            Node* child = cur->children[i];
+            if (cur == root) {
                 child->fail = root;
                 if (child->terminal != -1)
-                    child->output = true;
+                    child->res.push_back(child->terminal);
                 q.push(child);
                 continue;
             }
 
-            // find
-            TrieNode* temp = here->fail;
-            while (temp!=root && temp->child[i] == NULL)
-                temp = temp->fail;
-            if (temp->child[i] != NULL) temp = temp->child[i];
-
-            // processing
-            child->fail = temp;
-            if (child->terminal != -1 || child->fail->output)
-                child->output = true;
-
-            // bfs push
+            // calculating fail Node
+            Node* fail = cur->fail;
+            while (fail != root && fail->children[i] == NULL)
+                fail = fail->fail;
+            if (fail->children[i] != NULL)
+                fail = fail->children[i];
+            child->fail = fail;
+            // output process
+            child->res = fail->res;
+            if (child->terminal != -1)
+                child->res.push_back(child->terminal);
+            // 
             q.push(child);
-        } // child for
-    } // bfs while
-}
-
-bool AhoCorasick(TrieNode* root, const string& h)
-{
-    int len = h.length();
-    TrieNode* matched = root;
-    for (int i = 0; i < len; ++i)
-    {
-        int chld = toNumber(h[i]);
-        while (matched != root && matched->child[chld] == NULL)
-            matched = matched->fail;
-
-        if (matched->child[chld] != NULL)
-            matched = matched->child[chld];
-
-        if (matched->output)
-            return true;
+        }
     }
-
-    return false;
 }
