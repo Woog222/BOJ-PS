@@ -1,101 +1,87 @@
+#include<iostream>
+#include <vector>
+#include <algorithm>
+#include <tuple>
+#include <queue>
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <tuple>
+#include <queue>
+#include <cstring>
+#include <cmath>
+#include <iomanip>
+#include <list>
+#include <stack>
+#include <assert.h>
+#include <string>
 #include <map>
 #include <set>
-#include <deque>
+#include <iterator>
 #include <cstdlib>
+#include <climits>
 using namespace std;
+typedef long long ll;
+typedef vector<int> vi;
+typedef vector<vi> vvi;
+typedef pair<int, int> pii;
+const int INF = 987654321;
+const double PI = acos(-1.0);
+
 struct Point {
-	int x, y;
-};
+    int x, y;
+    explicit Point(int _x=0,int _y=0 ) : x(_x), y(_y) {}
 
-bool comp_x(Point &a, Point &b) {
-	return a.x < b.x;
-}
-bool comp_y(Point &a, Point &b) {
-	return a.y < b.y;
-}
-
-
-const int MAX = 987654321;
-
-
-inline int MIN(int a, int b){
-	return (a<b) ? a : b;
-}
-
-inline int distance (Point a, Point b) {
-	return (a.x-b.x)*(a.x-b.x) + 
-		(b.y-a.y)*(b.y-a.y);
-}
-
-int brute_force(vector<Point> &a, int start, int end) {
-    int ans = -1;
-    for (int i=start; i<=end-1; i++) {
-        for (int j=i+1; j<=end; j++) {
-            int d = distance(a[i], a[j]);
-            if (ans == -1 || ans > d) {
-                ans = d;
-            }
-        }
+    friend bool operator < (const Point& a, const Point& b)  {
+        return (a.y == b.y) ? (a.x < b.x) : (a.y < b.y);
     }
-    return ans;
-}
-
-int fun(vector<Point> &a, int low, int high)
-{
-	if(high-low <=3) return brute_force(a, low, high);
-
-	int mid = (low+high)/2; 
-	//cout << low << mid << high << endl;
-	int left =fun(a, low, mid);
-	int right = fun(a, mid+1, high);
-	int d = MIN( left, right );
-	int res = d;
-
-	
-	vector<Point> middle;
-	for (int i = mid+1;i<=high;++i) {
-		int diff = a[mid].x - a[i].x;
-		if (diff * diff >= d) break;
-		middle.push_back(a[i]);
-	}
-	for (int i = mid;i>=low;--i) {
-		int diff =a[mid+1].x - a[i].x;
-		if (diff * diff >= d) break;
-		middle.push_back(a[i]);
-	}
-	
-	sort(middle.begin(), middle.end(), comp_y);
-	int size = middle.size();
-for(int i=0; i<size-1; ++i){
-		for (int j = i+1; j<size; ++j) {
-			int diff = middle[i].y - middle[j].y;
-			if (diff * diff >= d) break;
-			
-			res = MIN( res, distance( middle[i],middle[j] ) );			
-		}
-	}
-	
-	return res;
-}
-
+};
+int dist(Point a, Point b);
 int main()
-{
-	cin.tie(nullptr);
-	ios_base::sync_with_stdio(false);
-	
-	int n;
-	cin >> n;
-	vector<Point> a(n);
-	int temp_x, temp_y;
-	for (int i=0; i<n; ++i) {
-		cin >> temp_x >> temp_y;
-		a[i] = {temp_x, temp_y};
-	}
-	
-	sort(a.begin(), a.end(), comp_x);
-	cout << fun(a,0,n-1) << endl;
+{   
+    cin.tie(nullptr); ios_base::sync_with_stdio(false);
+    cout.tie(nullptr);
+
+    int n; cin >> n;
+    vector<Point> points(n);
+    for (int i = 0; i < n; ++i)
+        cin >> points[i].x >> points[i].y;
+
+    // NlogN
+    sort(points.begin(), points.end(), 
+        [](const Point& a, const Point& b) {
+            return a.x < b.x;
+        });
+
+    set<Point> cand = { points[0], points[1] };
+    int ans = dist(points[0], points[1]);
+    int from = 0;
+    for (int i = 2; i < n; ++i) {
+        auto now = points[i];
+        while (from < i) {
+            int dx = points[from].x - now.x;
+            if (dx * dx > ans) 
+                cand.erase(points[from++]);
+            else
+                break;
+        }
+        
+        int dy = (int)sqrt(ans) + 1;
+        auto iter = cand.lower_bound(Point(-100000, now.y-dy));
+        auto until = cand.upper_bound(Point(100000, now.y+dy));
+        while (iter != until) {
+            ans = min(ans, dist(now, *(iter++)));
+        }
+
+        cand.insert(now);
+    }
+
+    cout << ans << '\n';
 }
+
+int dist(Point a, Point b) {
+    int dx = a.x - b.x;
+    int dy = a.y - b.y;
+    return dx * dx + dy * dy;
+}
+
