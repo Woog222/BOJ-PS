@@ -59,7 +59,7 @@ int main()
 vector<int> suffixArray(const string& s)
 {
     int n = s.size(), m = max(256, n) + 1;
-    vector<int> ret(n), group(2 * n), nextGroup(2 * n), cnt(m), idx(n);
+    vector<int> ret(n), group(n+1), nextGroup(n+1), cnt(m), idx(n);
 
     for (int i = 0; i < n; ++i)
         ret[i] = i, group[i] = s[i];
@@ -74,15 +74,16 @@ vector<int> suffixArray(const string& s)
         };
         // group[i+t]
         for (int i = 0; i < m; ++i) cnt[i] = 0;
-        for (int i = 0; i < n; ++i) cnt[group[i + t]]++;
+        for (int i = 0; i < n; ++i) cnt[group[min(n, i+t)]]++;
         for (int i = 1; i < m; ++i) cnt[i] += cnt[i - 1];
-        for (int i = n - 1; i >= 0; --i) idx[--cnt[group[i + t]]] = i;
+        for (int i = n - 1; i >= 0; --i) idx[--cnt[group[min(n, i + t)]]] = i;
         // group[i]
         for (int i = 0; i < m; ++i) cnt[i] = 0;
         for (int i = 0; i < n; ++i) cnt[group[i]]++;
         for (int i = 1; i < m; ++i) cnt[i] += cnt[i - 1];
         for (int i = n - 1; i >= 0; --i) ret[--cnt[group[idx[i]]]] = idx[i];
 
+        // 왜 1인지 이해한다면 성공
         nextGroup[ret[0]] = 1;
         for (int i = 1; i < n; ++i)
             nextGroup[ret[i]] = nextGroup[ret[i - 1]] + comp(ret[i - 1], ret[i]);
