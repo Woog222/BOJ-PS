@@ -52,40 +52,44 @@ int main()
     for_each(cp.begin(), cp.end(), [](int a) {
         if (a == -1) cout << 'x' << " ";
         else cout << a << " "; });
-
+    cout << el;
 }
 
-vi suffixArray(const string& s)
-{
-    int n = s.size();
-    vector<int> ret(n);
-    for (int i = 0; i < n; ++i) ret[i] = i;
 
-    vector<int> group(n + 1);
-    group[n] = -1; // 이걸 이해하면 전부 이해한 것
-    // 우선 길이 1만큼만 정렬돼있음 (아스키코드값 그대로 넣기)
+vector<int> suffixArray(const string& s)
+{
+    int n = s.size(), m = max(256, n) + 1;
+    vector<int> ret(n), group(2 * n), nextGroup(2 * n), cnt(m), idx(n);
+
     for (int i = 0; i < n; ++i)
-        group[i] = s[i];
+        ret[i] = i, group[i] = s[i];
 
     int t = 1;
     while (true) {
-        Comp comp(group, t);
-        // 현재 t길이까지 정렬돼있고, 이정보를이용해 2t까지 정렬
-        sort(ret.begin(), ret.end(), comp);
-        t *= 2;
-        if (t >= n) break;
+        // 이번엔 람다로 구현
+        auto comp = [&](int i, int j) {
+            return (group[i] == group[j])
+                ? (group[i + t] < group[j + t])
+                : (group[i] < group[j]);
+        };
+        // group[i+t]
+        for (int i = 0; i < m; ++i) cnt[i] = 0;
+        for (int i = 0; i < n; ++i) cnt[group[i + t]]++;
+        for (int i = 1; i < m; ++i) cnt[i] += cnt[i - 1];
+        for (int i = n - 1; i >= 0; --i) idx[--cnt[group[i + t]]] = i;
+        // group[i]
+        for (int i = 0; i < m; ++i) cnt[i] = 0;
+        for (int i = 0; i < n; ++i) cnt[group[i]]++;
+        for (int i = 1; i < m; ++i) cnt[i] += cnt[i - 1];
+        for (int i = n - 1; i >= 0; --i) ret[--cnt[group[idx[i]]]] = idx[i];
 
-        // 2*t까지 정렬한 정보를 갱신
-        vector<int> newGroup(n + 1);
-        newGroup[n] = -1;
-        newGroup[ret[0]] = 0;
-        for (int i = 1; i < n; ++i) {
-            if (comp(ret[i - 1], ret[i]))
-                newGroup[ret[i]] = newGroup[ret[i - 1]] + 1;
-            else
-                newGroup[ret[i]] = newGroup[ret[i - 1]];
-        }
-        swap(group, newGroup);
+        nextGroup[ret[0]] = 1;
+        for (int i = 1; i < n; ++i)
+            nextGroup[ret[i]] = nextGroup[ret[i - 1]] + comp(ret[i - 1], ret[i]);
+        
+        t *= 2;
+        swap(group, nextGroup);
+        if (group[ret[n - 1]] == n) break;
     }
 
     return ret;
