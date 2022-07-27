@@ -36,7 +36,7 @@ int Find(int u) {
 void Union(int u, int v) {
     u = Find(u);
     v = Find(v);
-    if (u==v) return;
+    if (u == v) return;
     p[u] = v;
 }
 
@@ -44,23 +44,23 @@ int main()
 {
     cin.tie(nullptr); ios_base::sync_with_stdio(false); cout.tie(nullptr);
     cin >> N >> M >> K;
-    for (int i = 0; i <= M; ++i) p[i] = i;
-    for (int i = 1; i <= M; ++i) cin >> cards[i];
-    sort(cards+1, cards+M+1);
+    for (int i = 0; i <= N; ++i) p[i] = i;
+    for (int i = 0; i < M; ++i) cin >> cards[i];
+    sort(cards , cards + M);
 
     while (K--) {
         int card; cin >> card;
 
-        int lo = 1, hi = M+1;
+        int lo = 0, hi = M;
         while (lo < hi) {
             int mid = (lo + hi) / 2;
-            if (cards[Find(mid)] > card)
+            if (cards[mid] > card)
                 hi = mid;
             else
                 lo = mid + 1;
         }
         int idx = Find(hi);
         cout << cards[idx] << el;
-        Union(idx, max(idx - 1, 0));
+        Union(idx, idx+1);
     }
 }
