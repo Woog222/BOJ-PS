@@ -55,8 +55,8 @@ int fun(int lo, int hi)
     // pass
     ret = fun(lo + 1, hi);
     //choose
-    for (int i : member[beer[lo]]) {
-        if (inBoundary(lo,hi,i)) ret = max(ret,
+    for (int i = lo + 1; i <= hi; ++i) {
+        if (beer[i] == beer[lo] && inBoundary(lo,hi,i)) ret = max(ret,
             fun(lo + 1, i- 1 ) + fun(i + 1 , hi)+1);
     }
 
