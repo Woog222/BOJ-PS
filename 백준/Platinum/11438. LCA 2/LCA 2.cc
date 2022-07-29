@@ -22,42 +22,27 @@ typedef vector<vi> vvi;
 typedef pair<int, int> pii;
 const int INF = numeric_limits<int>::max();
 const int MOD = 1000000007;
+const int N = 100000;
 
-int N;
-int depth[100001], p[100001][17];
-vi adj[100001];
+vector<int> adj[N + 1]; // 그래프
+int p[N + 1][17];
+int in[N + 1]; int out[N + 1];
+int order = 0;
 
-void init();
+void dfs(int here, int parent);
 int lca(int u, int v);
 int main()
 {
     cin.tie(NULL); ios_base::sync_with_stdio(false);
-    cin >> N;
-    for (int i = 0; i < N-1; ++i) {
+    int n; cin >> n;
+    for (int i = 0; i < n-1; ++i) {
         int a, b; cin >> a >> b;
         adj[a].push_back(b);
         adj[b].push_back(a);
     }
-
-    memset(depth, -1, sizeof(depth));
-    queue<int> q;
-    q.push(1);
-    p[1][0] = 0;
-    depth[1] = 0;
     
-    while (!q.empty())
-    {
-        int here = q.front(); q.pop();
-        for (int next : adj[here]) {
-            if (depth[next] == -1) {
-                q.push(next);
-                depth[next] = depth[here] + 1;
-                p[next][0] = here;
-            }
-        }
-    }
+    dfs(1, 1);
 
-    init();
     int query; cin >> query;
     while (query--) {
         int u, v; cin >> u >> v;
@@ -65,35 +50,33 @@ int main()
     }
 }
 
-void init() {
-    // 루트의 부모를 따로 나타내기위해 노드 번호 1~N으로 세팅
-    // p[i][0]은 본인의 직계 부모로 초기화돼있다고 가정
-    // p[root][0] = 0;
-    for (int j = 1; (1 << j) < N; ++j) {
-        for (int i = 1; i <= N; ++i) {
-            p[i][j] = p[p[i][j - 1]][j - 1];
-        }
-    }
+
+// 1~N, 루트가 1이면 (1,0)으로 시작
+void dfs(int here, int parent) {
+    in[here] = ++order;
+
+    //dfs특성상, 부모의 p정보는 이미다 구현되어 있다.
+    p[here][0] = parent;
+    for (int j = 1; j < 17; ++j)
+        p[here][j] = p[p[here][j - 1]][j - 1];
+    for (int next : adj[here])
+        if (next != parent) dfs(next, here);
+
+    out[here] = ++order;
+}
+
+inline bool isAncestor(int u, int v) {
+    return in[u] <= in[v] && out[v] <= out[u];
 }
 
 int lca(int u, int v) {
-    // WLOG, depth[u] < depth[v]
-    if (depth[u] > depth[v]) swap(u, v);
+    if (isAncestor(u, v)) return u;
+    if (isAncestor(v, u)) return v;
 
-    int k = 0; 
-    while ((1 << (k+1)) <= depth[v]) k++;
-
-    // v를 u까지 올리기
-    for (int i = k; i >= 0; --i) {
-        if (depth[v] - (1 << i) >= depth[u])
-            v = p[v][i];
-    }
-    if (u == v) return u;
-
-    // 같이 올리기
-    for (int i = k; i >= 0; --i) {
-        if (p[u][i] != 0 && p[u][i] != p[v][i])
-            u = p[u][i], v = p[v][i];
+    // 직전까지 올리기
+    for (int k = 16; k >= 0; --k) {
+        if (!isAncestor(p[u][k], v))
+            u = p[u][k];
     }
     return p[u][0];
 }
