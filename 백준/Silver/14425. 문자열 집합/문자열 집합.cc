@@ -5,83 +5,81 @@
 #include <queue>
 #include <cstring>
 #include <cmath>
-#include <iomanip>
 #include <list>
 #include <stack>
 #include <assert.h>
 #include <string>
 #include <map>
 #include <set>
-#include <iterator>
 #include <cstdlib>
+#include <climits>
+#include <cstdio>
+#define el '\n'
 using namespace std;
 typedef long long ll;
 typedef vector<int> vi;
 typedef vector<vi> vvi;
 typedef pair<int, int> pii;
 const int INF = 987654321;
+const int MOD = 1000000007;
+
+
+const int LETTER = 26;
+inline int childIndex(char c) {
+    return c - 'a';
+}
 
 struct Node {
-    bool valid;
-    Node* children[26];
+    Node* children[LETTER];
+    bool terminal;
 
-    Node() : valid(false) {
-        memset(children, NULL, sizeof(children));
+    Node() : terminal(false) {
+        memset(children, 0, sizeof(children));
     }
-
     ~Node() {
-        for (int i = 0; i < 26; ++i)
+        for (int i = 0; i < LETTER; ++i)
             delete children[i];
     }
 
-    void insert(const char* key)
-    {
+    void insert(const char* key) {
         if (*key == 0) {
-            this->valid = true;
+            terminal = true;
             return;
         }
 
-
-        if (children[*key - 'a'] == NULL)
-            children[*key - 'a'] = new Node();
-
-      
-
-        children[*key - 'a']->insert(key+1);
+        int chidx = childIndex(*key);
+        if (children[chidx] == NULL)
+            children[chidx] = new Node();
+        children[chidx]->insert(key + 1);
     }
 
-    bool search(const char* key)
-    {
-        if (*key == 0)
-            return this->valid;
-
-        Node* child = this->children[*key - 'a'];
-        if (child == NULL)
-            return false;
-
-        return child->search(key+1);
+    Node* search(const char* key) {
+        if (*key == 0) return this;
+        int chidx = childIndex(*key);
+        if (children[chidx] == NULL) return NULL;
+        return children[chidx]->search(key + 1);
     }
 };
 
 
+
+
+
 int main()
 {
-    cin.tie(nullptr); ios_base::sync_with_stdio(false);
-    cout.tie(nullptr);
-
-    Node* trie = new Node();
+    cin.tie(NULL); ios_base::sync_with_stdio(false);
     int n, m; cin >> n >> m;
-    for (int i = 0; i < n; ++i) {
-        string temp; cin >> temp;
-        trie->insert(temp.c_str());
-    }
+    Node* trie = new Node();
 
+    while (n--) {
+        string s; cin >> s;
+        trie->insert(s.c_str());
+    }
     int ans = 0;
     while (m--) {
         string s; cin >> s;
-        if (trie->search(s.c_str()))
-            ans++;
+        Node* finded = trie->search(s.c_str());
+        if (finded != NULL && finded->terminal) ans++;
     }
-
-    cout << ans << endl;
+    cout << ans << el;
 }
