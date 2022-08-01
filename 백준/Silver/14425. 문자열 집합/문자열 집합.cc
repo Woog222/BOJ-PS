@@ -29,36 +29,57 @@ inline int childIndex(char c) {
     return c - 'a';
 }
 
-struct Node {
-    Node* children[LETTER];
-    bool terminal;
+struct Trie {
+    struct Node {
+        int children[LETTER];
+        bool terminal;
+        Node() : terminal(false) {
+            memset(children, -1, sizeof(children));
+        }
+    };
 
-    Node() : terminal(false) {
-        memset(children, 0, sizeof(children));
-    }
-    ~Node() {
-        for (int i = 0; i < LETTER; ++i)
-            delete children[i];
+    vector<Node> trie;
+    int root;
+
+    Trie() {
+        root = newNode();
     }
 
-    void insert(const char* key) {
+    int newNode() {
+        trie.push_back(Node());
+        return (int)trie.size() - 1;
+    }
+
+    void insert(const string& s) {
+        insert(s.c_str(), root);
+    }
+
+    void insert(const char* key, int node) {
         if (*key == 0) {
-            terminal = true;
+            trie[node].terminal = true;
             return;
         }
-
         int chidx = childIndex(*key);
-        if (children[chidx] == NULL)
-            children[chidx] = new Node();
-        children[chidx]->insert(key + 1);
+        if (trie[node].children[chidx] == -1)
+            trie[node].children[chidx] = newNode();
+
+        insert(key + 1, trie[node].children[chidx]);
     }
 
-    Node* search(const char* key) {
-        if (*key == 0) return this;
+    bool search(const string& s) {
+        int idx = search(s.c_str(), root);
+        if (idx == -1 || !trie[idx].terminal) return false;
+        return true;
+    } 
+
+    int search(const char* key, int node) {
+        if (*key == 0) return node;
+
         int chidx = childIndex(*key);
-        if (children[chidx] == NULL) return NULL;
-        return children[chidx]->search(key + 1);
+        if (trie[node].children[chidx] == -1) return -1;
+        return search(key + 1, trie[node].children[chidx]);
     }
+
 };
 
 
@@ -69,17 +90,17 @@ int main()
 {
     cin.tie(NULL); ios_base::sync_with_stdio(false);
     int n, m; cin >> n >> m;
-    Node* trie = new Node();
+    Trie trie;
 
     while (n--) {
         string s; cin >> s;
-        trie->insert(s.c_str());
+        trie.insert(s);
     }
     int ans = 0;
     while (m--) {
         string s; cin >> s;
-        Node* finded = trie->search(s.c_str());
-        if (finded != NULL && finded->terminal) ans++;
+        if (trie.search(s)) ans++;
     }
+
     cout << ans << el;
 }
