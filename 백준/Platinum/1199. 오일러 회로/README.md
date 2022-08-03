@@ -1,10 +1,10 @@
-# [Platinum V] 오일러 회로 - 1199 
+# [Platinum IV] 오일러 회로 - 1199 
 
 [문제 링크](https://www.acmicpc.net/problem/1199) 
 
 ### 성능 요약
 
-메모리: 445332 KB, 시간: 2400 ms
+메모리: 338856 KB, 시간: 2400 ms
 
 ### 분류
 

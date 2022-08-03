@@ -2,65 +2,60 @@
 #include <vector>
 #include <algorithm>
 #include <tuple>
-#include <set>
 #include <queue>
 #include <cstring>
 #include <cmath>
-#include <map>
 #include <list>
+#include <stack>
+#include <assert.h>
+#include <string>
+#include <map>
+#include <set>
+#include <cstdlib>
+#include <climits>
+#include <cstdio>
+#define el '\n'
 using namespace std;
 typedef long long ll;
 typedef vector<int> vi;
 typedef vector<vi> vvi;
-typedef vector<vvi> vvvi;
 typedef pair<int, int> pii;
-const int INF = 987654321;
-
-int n;
-int graph[1001][1001];
-int start[1001];
+const ll INF = numeric_limits<ll>::min();
 
 
-void dfs(vi& ans, int now)
-{
-    for (int next = start[now]; next <= n; ++next) 
-    {
-        start[now] = next;
-        while (graph[now][next] > 0) {
-            graph[now][next]--;
-            graph[next][now]--;
-            dfs(ans, next);
+int start[1000], adj[1000][1000]; // i-j 간선의 수
+int N;
+deque<int> circuit;
+
+void dfsEuler(int here) {
+    for (int there = start[here]; there < N; ++there) {
+        start[here] = there;
+        while (adj[here][there] > 0) {
+            adj[here][there]--;
+            // 방향그래프인 경우 아래코드 사용하지 않음
+            adj[there][here]--;
+            dfsEuler(there);
         }
     }
-
-    ans.push_back(now);
+    circuit.push_front(here);
 }
-
-
-int main()
-{
-    cout.tie(nullptr);
+int main() {
     cin.tie(nullptr); ios_base::sync_with_stdio(false);
-    cin >> n;
-
-    for (int i = 1; i <= n; ++i) {
-        for (int j = 1; j <= n; ++j) {
-            cin >> graph[i][j];
+    cin >> N;
+    int e = 0;
+    for (int i = 0; i < N; ++i)
+        for (int j = 0; j < N; ++j) {
+            cin >> adj[i][j];
+            e += adj[i][j];
         }
-    }
-    vi ans;
-    for (int i = 1; i <= n; ++i) {
-        start[i] = 1;
-    }
-    dfs(ans, 1);
+    e /= 2;
 
-    if (ans.front() != ans.back()) {
-        cout << -1 << endl;
-        return 0;
+    dfsEuler(0);
+    if (circuit.front() != circuit.back() || circuit.size() != e+1 ) {
+        cout << -1 << el;
     }
-
-    for (auto i : ans) {
-        cout << i << " ";
+    else {
+        for (int v : circuit) cout << v+1 << " ";
+        cout << el;
     }
-    cout << endl;
 }
